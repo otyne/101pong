@@ -1,0 +1,86 @@
+#!/usr/bin/env php
+<?php
+
+function print_usage()
+{
+  $usage = "USAGE\n\t./101pong x0 y0 z0 x1 y1 z1 n\n";
+  $usage .= "\nDESCRIPTION\n\tx0\tball abscissa at time t - 1\n\t";
+  $usage .= "y0\tball ordinate at time t - 1\n\t";
+  $usage .= "z0\tball altitude at time t - 1\n\t";
+  $usage .= "x1\tball abscissa at time t\n\t";
+  $usage .= "y1\tball ordinate at time t\n\t";
+  $usage .= "z1\tball altitude at time t\n\t";
+  $usage .= "n\ttime shift (greater than or equal to zero, integer)\n";
+  echo $usage;
+}
+
+function get_velocity($argv)
+{
+  $vector = array();
+  $vector['x'] = $argv[4] - $argv[1];
+  $vector['y'] = $argv[5] - $argv[2];
+  $vector['z'] = $argv[6] - $argv[3];
+  return $vector;
+}
+
+function get_tim($argv, $vec)
+{
+  $tim = array();
+  $tim['x'] = $argv[4] + $vec['x'] * $argv[7];
+  $tim['y'] = $argv[5] + $vec['y'] * $argv[7];
+  $tim['z'] = $argv[6] + $vec['z'] * $argv[7];
+  return $tim;
+}
+
+function get_degree($vec, $ref, $argv)
+{
+  $tmp = array();
+  if ($argv[6] < 0 && $vec['z'] > 0 || $argv[6] > 0 && $vec['z'] < 0) {
+    $tmp['x'] = $ref['x'] / sqrt(pow($ref['x'], 2) + pow($ref['y'], 2));
+    $tmp['y'] = $ref['y'] / sqrt(pow($ref['x'], 2) + pow($ref['y'], 2));
+    $tmp['z'] = 0;
+    $vec['x'] = $ref['x'] / sqrt(pow($ref['x'], 2) + pow($ref['y'], 2) + pow($ref['z'], 2));
+    $vec['y'] = $ref['y'] / sqrt(pow($ref['x'], 2) + pow($ref['y'], 2) + pow($ref['z'], 2));
+    $vec['z'] = $ref['z'] / sqrt(pow($ref['x'], 2) + pow($ref['y'], 2) + pow($ref['z'], 2));
+    $ang = acos($tmp['x'] * $vec['x'] + $tmp['y'] * $vec['y'] + $tmp['z'] * $vec['z']);
+    return ($ang * 180 / pi());
+  }
+  else if ($argv[6] == 0 && $vec['z'] == 0)
+    return 0;
+  else
+    return -1;
+}
+
+function print_final($vec, $tim, $argv, $deg)
+{
+  printf("The velocity vector of the ball is:\n");
+  printf("(%.2f, %.2f, %.2f)\n", $vec['x'], $vec['y'], $vec['z']);
+  printf("At time t + %d, ball coordinates will be:\n", $argv[7]);
+  printf("(%.2f, %.2f, %.2f)\n", $tim['x'], $tim['y'], $tim['z']);
+  if ($deg >= 0)
+    printf("The incidence angle is:\n%.2f degrees\n", $deg);
+  else
+    printf("The ball won't reach the bat\n");
+}
+
+function index($argv)
+{
+  if ((count($argv)) != 8) {
+    if ($argv[1] == "-h")
+    print_usage();
+    return 84;
+  }
+  else {
+    if ($argv[7] < 0)
+      return 84;
+    else {
+      $vec = get_velocity($argv);
+      $tim = get_tim($argv, $vec);
+      $deg = get_degree($vec, $vec, $argv);
+      print_final($vec, $tim, $argv, $deg);
+    }
+  }
+}
+
+index($argv);
+?>
